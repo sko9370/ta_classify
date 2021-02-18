@@ -14,9 +14,15 @@ mpl.style.use('seaborn')
 
 def bollinger_bands(df):
     indicator_bb = BollingerBands(close=df["Close"])
-    #df['bb_bbm'] = indicator_bb.bollinger_mavg()
-    #df['bb_bbh'] = indicator_bb.bollinger_hband()
-    #df['bb_bbl'] = indicator_bb.bollinger_lband()
+    '''
+    # raw values
+    df['bb_bbm'] = indicator_bb.bollinger_mavg()
+    df['bb_bbh'] = indicator_bb.bollinger_hband()
+    df['bb_bbl'] = indicator_bb.bollinger_lband()
+    # just 0 or 1, better results positive
+    df['bb_bbh'] = indicator_bb.bollinger_hband_indicator()
+    df['bb_bbl'] = indicator_bb.bollinger_lband_indicator()
+    '''
     df['bb_bbh'] = indicator_bb.bollinger_hband_indicator()
     df['bb_bbl'] = indicator_bb.bollinger_lband_indicator()
 
@@ -26,12 +32,18 @@ def rsi(df):
 
 def change(df):
     df['Change'] = df['Close'].diff()
+    # theory that percentage change vs absolute change will work better with different stocks
+    # perchange change is better
+    df['Change'] = df['Change']/df['Close']
 
 def show_all():
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
     pd.set_option('display.max_colwidth', None)
+
+def preprocess(df):
+    pass
 
 if __name__ == '__main__':
     msft = yf.Ticker("spy")
@@ -43,10 +55,6 @@ if __name__ == '__main__':
 
     df = df.dropna()
 
-    show_all()
-    #print(df[['Close', 'Change', 'bb_bbl', 'bb_bbm', 'bb_bbh', 'rsi']])
-
-    #features = ['Close', 'bb_bbl', 'bb_bbm', 'bb_bbh', 'rsi']
     features = ['Close', 'bb_bbl', 'bb_bbh', 'rsi']
     X = df[features].copy()
     y = df['Change'].copy()
@@ -80,11 +88,9 @@ if __name__ == '__main__':
 
     df['xgb'] = xgb_model.predict(df[features])
 
-    plt.plot(df.Change, label='Change')
-    #plt.plot(df.bb_bbl, label='bb_bbl')
-    #plt.plot(df.bb_bbh, label='bb_bbh')
-    plt.plot(df.rtr, label='rtr')
-    plt.plot(df.xgb, label='xgb')
+    plt.plot(df.Change.iloc[30:60], label='Change')
+    plt.plot(df.rtr.iloc[31:60], label='rtr')
+    plt.plot(df.xgb.iloc[30:60], label='xgb')
     plt.title('Results')
     plt.legend()
     plt.show()
