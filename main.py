@@ -52,15 +52,21 @@ if __name__ == '__main__':
     y = df['Change'].copy()
 
     train_X, val_X, train_y, val_y = train_test_split(X, y, random_state = 0)
-
-    rtr_model = RandomForestRegressor()
-    rtr_model.fit(train_X, train_y)
-    rtr_predictions = rtr_model.predict(val_X)
+    '''
+    results = []
+    for m in [RandomForestRegressor(), XGBRegressor()]:
+        model = create_model(m, train_X, train_y)
+        model_predictions, mae, score = run_predictions(model, val_X, val_y)
+        results.append([model_predictions, mae, score])
+    '''
+    rfr_model = RandomForestRegressor()
+    rfr_model.fit(train_X, train_y)
+    rfr_predictions = rfr_model.predict(val_X)
     
-    print('MAE: ', mean_absolute_error(val_y, rtr_predictions))
-    print('Score: ', r2_score(val_y, rtr_predictions))
+    print('MAE: ', mean_absolute_error(val_y, rfr_predictions))
+    print('Score: ', r2_score(val_y, rfr_predictions))
 
-    df['rtr'] = rtr_model.predict(df[features])
+    df['rfr'] = rfr_model.predict(df[features])
 
     xgb_model = XGBRegressor()
     xgb_model.fit(train_X, train_y)
@@ -72,7 +78,7 @@ if __name__ == '__main__':
     df['xgb'] = xgb_model.predict(df[features])
 
     plt.plot(df.Change.iloc[30:60], label='Change')
-    plt.plot(df.rtr.iloc[30:60], label='rtr')
+    plt.plot(df.rfr.iloc[30:60], label='rfr')
     plt.plot(df.xgb.iloc[30:60], label='xgb')
     plt.title('Results')
     plt.legend()
